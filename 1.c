@@ -3,8 +3,17 @@
 
 GLfloat rotation = 90.0;
 float posX = -0.85, posY = -0.75, posZ = 0;
-int bulletShow=0;
-int bulletX= -0.85, bulletY= -0.75;
+int bulletShow=1;
+float bulletX= -0.85, bulletY= -0.75;
+
+void timer(int n){
+    glutPostRedisplay();
+    glutTimerFunc(1000/60, timer, 0);
+
+    if(bulletY<=1.7){
+        bulletY+=0.1;
+    }
+}
 
 void reshape(int width, int heigth){
     /* window ro reshape when made it bigger or smaller*/
@@ -34,12 +43,9 @@ void rect(){
 
 }
 
-void shoot(){
-    // glClear(GL_COLOR_BUFFER_BIT);
-    
+void shoot(){    
     if (bulletShow)
     {
-        
         glColor3f(1.0, 0.0, 1.0);
         // OpenGL commands to draw a rectangle
         glBegin(GL_QUADS);
@@ -49,6 +55,8 @@ void shoot(){
         glVertex2f(-0.05f, 0.05f);
         glEnd();
     }
+    glutPostRedisplay();
+    glFlush();
 }
 
 void display(){
@@ -61,9 +69,10 @@ void display(){
         rect();
     glPopMatrix();
     glPushMatrix();
-        glTranslatef(posX, posY+0.5,posZ);
+        glTranslatef(bulletX, bulletY+0.1,posZ);
         shoot();
     glPopMatrix();
+    glutSwapBuffers();
     glFlush();
 }
 
@@ -71,40 +80,36 @@ void display(){
 void init(){
     // set clear color to black
     glClearColor(0.0, 0.0, 0.0, 0.0);
-
     // set fill color to white
     glColor3f(1.0, 1.0, 1.0);
-
-    //set up standard orthogonal view with clipping
-    //box as cube of side 2 centered at origin
-    //This is the default view and these statements could be removed
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
 
 }
+
 float move_unit = 0.1f;
+
 void keyboardown(int key, int x, int y)
 {
     // printf("%d", key);
     switch (key){
         case GLUT_KEY_RIGHT:
-        if(posX<=0.85)
-            posX+=move_unit;
-            bulletX+=move_unit;
+            if(posX<=0.85){
+                posX+=move_unit;
+            }
             break;
         case GLUT_KEY_LEFT:
-        if(posX>=-0.85)
-            posX-=move_unit;
-        break;
-
-        case GLUT_KEY_UP:            
-            bulletShow=!bulletShow;
+            if(posX>=-0.85){
+                posX-=move_unit;
+            }
             break;
 
-        // case GLUT_KEY_DOWN:
-        //     posY-=move_unit;;
-        // break;
+        case GLUT_KEY_UP:
+            bulletY=-0.65;
+            bulletX=posX;            
+            display();
+            break;
 
         default:
          break;
@@ -115,16 +120,14 @@ void keyboardown(int key, int x, int y)
 
 int main(int argc, char** argv){
 
-    //initialize mode and open a windows in upper left corner of screen
-    //Windows tittle is name of program
-
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(500,500);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("Practice 1");
     glutDisplayFunc(display);
     init();
+    glutTimerFunc(1000, timer, 0);
     glutSpecialFunc(keyboardown);
     glutMainLoop();
 
