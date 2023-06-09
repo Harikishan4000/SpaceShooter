@@ -1,19 +1,56 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <GL/glut.h>
+#include <string.h>
+
 
 GLfloat rotation = 90.0;
 float posX = -0.85, posY = -0.75, posZ = 0;
 int bulletShow=1;
-float bulletX= -0.85, bulletY= -0.75;
+float bulletX= -0.8, bulletY= -0.8;
+float enemyX=0, enemyY=0.2;
+int score=00;
 
 void timer(int n){
     glutPostRedisplay();
     glutTimerFunc(1000/60, timer, 0);
 
+    // if(enemyX>=2){
+    //     enemyX-=0.1;
+    // }else if(enemyX<=-2){
+    //     enemyX+=0.1;
+    // }
+
     if(bulletY<=1.7){
         bulletY+=0.1;
     }
+    if(bulletY>=-0.2&& bulletY<=-0.1&& bulletX>=-0.8&&bulletX<=0.8){
+        score++;
+        glutPostRedisplay();
+    }
+    // printf("The score is: %d at Y: %f\n", score, bulletY);
+    printf("The score is: %d\n", score);
 }
+
+void renderbitmap(float x, float y, void *font, char* string){
+    char* c;
+    glRasterPos2d(x, y);
+    for(c=string; *c!='\0'; c++){
+        glutBitmapCharacter(font, *c);
+    }
+}
+
+void introscreen(){
+    glColor3f(1.0f, 1.0f, 0.0f);
+    char buf[1000]= {0};
+    char s[]="Your Score is:";
+    char sc[10];
+    sprintf(sc, "%2d", score);
+    strcat(s, sc);
+    snprintf(buf, 17, s);
+    renderbitmap(-0.8, 0.8, GLUT_BITMAP_TIMES_ROMAN_24, buf);
+}
+
 
 void reshape(int width, int heigth){
     /* window ro reshape when made it bigger or smaller*/
@@ -59,11 +96,26 @@ void shoot(){
     glFlush();
 }
 
+void enemies(){
+    glColor3f(0.0, 1.0, 0.0);
+        // OpenGL commands to draw a rectangle
+        glBegin(GL_QUADS);
+        glVertex2f(-0.8f, -0.2f);
+        glVertex2f(0.8f, -0.2f);
+        glVertex2f(0.8f, 0.2f);
+        glVertex2f(-0.8f, 0.2f);
+        glEnd();
+        glutPostRedisplay();
+        glFlush();
+
+}
+
 void display(){
     //Clear Window
     glClear(GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    introscreen();
     glPushMatrix();
         glTranslatef(posX,posY,posZ);
         rect();
@@ -72,6 +124,12 @@ void display(){
         glTranslatef(bulletX, bulletY+0.1,posZ);
         shoot();
     glPopMatrix();
+
+    glPushMatrix();
+        glTranslatef(enemyX, enemyY+0.1,posZ);
+        enemies();
+    glPopMatrix();
+
     glutSwapBuffers();
     glFlush();
 }
@@ -95,12 +153,12 @@ void keyboardown(int key, int x, int y)
     // printf("%d", key);
     switch (key){
         case GLUT_KEY_RIGHT:
-            if(posX<=0.85){
+            if(posX<=0.9){
                 posX+=move_unit;
             }
             break;
         case GLUT_KEY_LEFT:
-            if(posX>=-0.85){
+            if(posX>=-0.9){
                 posX-=move_unit;
             }
             break;
