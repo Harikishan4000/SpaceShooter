@@ -89,6 +89,7 @@ void timer(int n)
         bullet_shot_target_hit=1;
     // printf("The score is: %d at Y: %f\n", score, bulletY);
     // printf("The score is: %f\n", enemyX);
+    }
 }
 
 void enemyTimer(){
