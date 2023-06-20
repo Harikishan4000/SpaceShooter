@@ -8,14 +8,15 @@
 GLfloat rotation = 90.0;
 int bullet_shot_target_hit=1;
 float move_unit = 0.1f;
-int enemyMoveDir = 0; // 0 is left 1 is right
+int enemyMoveDir[5] = {0, 1, 0, 1, 0}; // 0 is left 1 is right
 float posX = 0, posY = -0.75, posZ = 0;
 float bulletX = -0.8, bulletY = -0.8;
-float enemyX = 0, enemyY = 0.2;
+// float enemyX1 = 0, enemyX2 = 0.2,enemyX3 = 0.4,enemyX4 = 0.6,enemyX5 = 0.8;
+float enemyX[5]={0, 0.2, -0.2, 0.4, -0.4};
+float enemyY = 0.2;
+int enemyAliveArr[5] = {1, 1, 1, 1, 1}; // 1 if alive, 0 if dead
+
 int score = 0, level = 1;
-int enemyXarr[5] = {0, 0, 0, 0, 0};
-int enemyYarr[5] = {0.2, 0, 0, 0, 0};
-int enemyAliveArr[5] = {0, 0, 0, 0, 0}; // 1 if alive, 0 if dead
 
 //3D obj rendering
 GLfloat theta[]={0.0, 0.0, 0.0};
@@ -64,49 +65,46 @@ void timer(int n)
     {
         bulletY += move_unit;
     }
-
-    if (bulletY >= -enemyY&& bulletY <= -enemyY + 0.1 && bulletX >= enemyX-0.1 && bulletX <= enemyX+0.1 && bullet_shot_target_hit==0)
-    {
-        printf("Bullet X: %2f    Bullet Y: %2f\nEnemy X: %2f    Enemy Y: %2f\n", bulletX, bulletY, enemyX, enemyY);
-        score++;
-        if (score >= 10)
+    for(int i=0;i<5;i++){
+        if (bulletY >= -enemyY&& bulletY <= -enemyY+0.4 && bulletX >= enemyX[i]-0.04 && bulletX <= enemyX[i]+0.04 && bullet_shot_target_hit==0 && enemyAliveArr[i]==1)
         {
-            score = 0;
-            level++;
+            printf("Bullet X: %2f    Bullet Y: %2f\nEnemy X: %2f    Enemy Y: %2f\n", bulletX, bulletY, enemyX[i], enemyY);
+            score++;
+            if (score >= 5)
+            {
+                score = 0;
+                level++;
+                for(int j=0; j<5;j++){
+                    enemyAliveArr[j]=1;
+                }
+                break;
+            }
+            glutPostRedisplay();
+            bullet_shot_target_hit=1;
+            enemyAliveArr[i]=0;
         }
-        glutPostRedisplay();
-        bullet_shot_target_hit=1;
-    }
-    else if(bulletY >= -enemyY&& bulletY <= -enemyY+0.4 && bulletX >= enemyX-0.05 && bulletX <= enemyX+0.05 && bullet_shot_target_hit==0){
-        printf("Bullet X: %2f    Bullet Y: %2f\nEnemy X: %2f    Enemy Y: %2f\n", bulletX, bulletY, enemyX, enemyY);
-        score++;
-        if (score >= 10)
-        {
-            score = 0;
-            level++;
-        }
-        glutPostRedisplay();
-        bullet_shot_target_hit=1;
-    // printf("The score is: %d at Y: %f\n", score, bulletY);
-    // printf("The score is: %f\n", enemyX);
     }
 }
 
 void enemyTimer(){
     glutPostRedisplay();
-    glutTimerFunc(3000/60, enemyTimer, 0);
-    if(enemyMoveDir==0){
-        enemyX-=move_unit;
-        if(enemyX<=-1){
-            enemyMoveDir=1;
+    int temp= 1000/level;
+    glutTimerFunc(temp/(30*level), enemyTimer, 0);
+    for(int i=0;i<5;i++){
+        if(enemyMoveDir[i]==0){
+            enemyX[i]-=move_unit+((0.01*(level-2))*i);
+            if(enemyX[i]<=-1+(0.1*i)){
+                enemyMoveDir[i]=1;
+            }
+        }
+        if(enemyMoveDir[i]==1){
+            enemyX[i]+=move_unit+((0.01*(level-2))*i);
+            if(enemyX[i]>=1){
+                enemyMoveDir[i]=0;
+            }
         }
     }
-    if(enemyMoveDir==1){
-        enemyX+=move_unit;
-        if(enemyX>=1){
-            enemyMoveDir=0;
-        }
-    }
+    
 
 }
 
@@ -192,7 +190,7 @@ void display()
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-	GLfloat lightIntensity[]={1.0f, 0.0f, 0.0f, 1.0f};
+	GLfloat lightIntensity[]={1.0f, 1.0f, 1.0f, 1.0f};
 	GLfloat lightPosition[]={2.0f, 6.0f, 3.0f, 0.0f};
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);
@@ -211,12 +209,51 @@ void display()
         shoot();
     glPopMatrix();
 
+    //Enemies
+    if(enemyAliveArr[0]==1){
+        glPushMatrix();
+            glTranslatef(enemyX[0], enemyY, posZ);
+            glRotatef(theta[1], 1.0, 1.0, 0.0);
+            glutWireTeapot(0.05);
+            enemies();
+        glPopMatrix();
+    }
+    
+    if(enemyAliveArr[1]==1){
     glPushMatrix();
-        glTranslatef(enemyX, enemyY, posZ);
+        glTranslatef(enemyX[1], enemyY, posZ);
 		glRotatef(theta[1], 1.0, 1.0, 0.0);
 		glutWireTeapot(0.05);
         enemies();
     glPopMatrix();
+    }
+
+if(enemyAliveArr[2]==1){
+    glPushMatrix();
+        glTranslatef(enemyX[2], enemyY, posZ);
+		glRotatef(theta[1], 1.0, 1.0, 0.0);
+		glutWireTeapot(0.05);
+        enemies();
+    glPopMatrix();
+}
+
+if(enemyAliveArr[3]==1){
+    glPushMatrix();
+        glTranslatef(enemyX[3], enemyY, posZ);
+		glRotatef(theta[1], 1.0, 1.0, 0.0);
+		glutWireTeapot(0.05);
+        enemies();
+    glPopMatrix();
+}
+
+if(enemyAliveArr[4]==1){
+        glPushMatrix();
+        glTranslatef(enemyX[4], enemyY, posZ);
+		glRotatef(theta[1], 1.0, 1.0, 0.0);
+		glutWireTeapot(0.05);
+        enemies();
+    glPopMatrix();
+}
 
     glutSwapBuffers();
     glFlush();

@@ -1,271 +1,177 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <GL/glut.h>
-#include <string.h>
+// C program to illustrate OpenGL game
+#include<stdio.h>
+#include<GL/glut.h>
+#include<math.h>
+#define pi 3.142857
 
+// Global Declaration
+// c and d tracks the number of time 'b' and 'n' pressed respectively
+// left and right indicates leftmost and rightmost index of movable rectangle
+int c = 0, d = 0, left = 0, right = 0;
+int m = 0, j = 1, flag1 = 0, l = 1, flag2 = 0, n = 0, score = 0, count = 1;
 
-
-GLfloat rotation = 90.0;
-float move_unit = 0.1f;
-int enemyMoveDir = 0; // 0 is left 1 is right
-float posX = 0, posY = -0.75, posZ = 0;
-float bulletX = -0.8, bulletY = -0.8;
-float enemyX = 0, enemyY = 0.2;
-int score = 0, level = 1;
-int enemyXarr[5] = {0, 0, 0, 0, 0};
-int enemyYarr[5] = {0.2, 0, 0, 0, 0};
-int enemyAliveArr[5] = {0, 0, 0, 0, 0}; // 1 if alive, 0 if dead
-
-//3D obj rendering
-GLfloat theta[]={0.0, 0.0, 0.0};
-GLint axis=1;
-
-//Font styling
-void renderbitmap(float x, float y, void *font, char *string)
+// Initialization function
+void myInit (void)
 {
-    char *c;
-    glRasterPos2d(x, y);
-    for (c = string; *c != '\0'; c++)
-    {
-        glutBitmapCharacter(font, *c);
-    }
-}
+	// Reset background color with white (since all three argument is 1.0)
+	glClearColor(1.0, 1.0, 1.0, 0.0);
 
-void introscreen()
-{
-    glColor3f(0.7f, 0.7f, 0.7f);
-    char buf[1000] = {0};
-    char s[] = "Your Score is: ";
-    char sc[10];
-    sprintf(sc, "%d", score);
-    strcat(s, sc);
-    snprintf(buf, 17, s);
-    renderbitmap(-0.9, 0.85, GLUT_BITMAP_TIMES_ROMAN_24, buf);
+	// Set picture color to red (in RGB model)
+	// as only argument corresponding to R (Red) is 1.0 and rest are 0.0
+	glColor3f(1.0f, 0.0f, 0.0f);
 
-    glColor3f(0.7f, 0.7f, 0.7f);
-    char buf2[1000] = {0};
-    char s2[] = "Level: ";
-    char lv[10];
-    sprintf(lv, "%d", level);
-    strcat(s2, lv);
-    snprintf(buf2, 9, s2);
-    renderbitmap(0.6, 0.85, GLUT_BITMAP_TIMES_ROMAN_24, buf2);
-}
-
-//Timer functions
-void timer(int n)
-{
-    glutPostRedisplay();
-    glutTimerFunc(1000 / 60, timer, 0);
-
-    if (bulletY <= 1.7)
-    {
-        bulletY += move_unit;
-    }
-
-    if (bulletY >= -enemyY&& bulletY <= -enemyY + 0.1 && bulletX >= enemyX-0.08 && bulletX <= enemyX+0.08)
-    {
-        printf("Bullet X: %2f    Bullet Y: %2f\nEnemy X: %2f    Enemy Y: %2f\n", bulletX, bulletY, enemyX, enemyY);
-        score++;
-        if (score >= 10)
-        {
-            score = 0;
-            level++;
-        }
-        glutPostRedisplay();
-    }
-    // printf("The score is: %d at Y: %f\n", score, bulletY);
-    // printf("The score is: %f\n", enemyX);
-}
-
-void enemyTimer(){
-    glutPostRedisplay();
-    glutTimerFunc(3000/60, enemyTimer, 0);
-    if(enemyMoveDir==0){
-        enemyX-=move_unit;
-        if(enemyX<=-1){
-            enemyMoveDir=1;
-        }
-    }
-    if(enemyMoveDir==1){
-        enemyX+=move_unit;
-        if(enemyX>=1){
-            enemyMoveDir=0;
-        }
-    }
-
-}
-
-void reshape(int width, int height)
-{
-    /* window ro reshape when made it bigger or smaller*/
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    // clip the windows so its shortest side is 2.0
-    if (width < height)
-    {
-        glOrtho(-2.0, 2.0, -2.0 * (GLfloat)height / (GLfloat)width, 2.0 * (GLfloat)height / (GLfloat)width, 2.0, 2.0);
-    }
-    else
-    {
-        glOrtho(-2.0, 2.0, -2.0 * (GLfloat)width / (GLfloat)height, 2.0 * (GLfloat)width / (GLfloat)height, 2.0, 2.0);
-    }
-    // set viewport to use the entire new window
-    glViewport(0, 0, width, height);
-}
-
-void init()
-{
-    // set clear color to black
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    // set fill color to white
-    glColor3f(1.0, 1.0, 1.0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
-}
-
-void rect()
-{
-    glBegin(GL_POLYGON);
-    glColor3f(1.0, 0.0, 0.0);
-    glVertex2f(-0.05, -0.1);
-    glVertex2f(-0.05, 0.1);
-    glVertex2f(0.05, 0.1);
-    glVertex2f(0.05, -0.1);
-    glEnd();
-}
-
-void shoot()
-{
-    glColor3f(1.0, 0.0, 1.0);
-    // OpenGL commands to draw a rectangle
-    glBegin(GL_QUADS);
-    glVertex2f(-0.05f, -0.05f);
-    glVertex2f(0.05f, -0.05f);
-    glVertex2f(0.05f, 0.05f);
-    glVertex2f(-0.05f, 0.05f);
-    glEnd();
-    glutPostRedisplay();
-    glFlush();
-}
-
-void enemies()
-{
-    glColor3f(0.0, 1.0, 0.0);
-    // OpenGL commands to draw a rectangle
-    glBegin(GL_QUADS);
-    glVertex2f(-0.08, -0.1f);
-    glVertex2f(0.08, -0.1f);
-    glVertex2f(0.08, 0.04f);
-    glVertex2f(-0.08, 0.04f);
-    glEnd();
-    glutPostRedisplay();
-    glFlush();
-}
-
-void display()
-{
-    // Clear Window
-    GLfloat mat_ambient[]={1.0f, 1.0f, 1.0f, 1.0f};
-	GLfloat mat_diffuse[]={0.5f, 0.5f, 0.5f, 1.0f};
-	GLfloat mat_specular[]={1.0f, 1.0f, 1.0f, 1.0f};
-	GLfloat mat_shininess[]={50.0f};
-	
-	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
-	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-	GLfloat lightIntensity[]={1.0f, 0.0f, 0.0f, 1.0f};
-	GLfloat lightPosition[]={2.0f, 6.0f, 3.0f, 0.0f};
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);
-    glMatrixMode(GL_MODELVIEW);
+	// Set width of point to one unit
+	glPointSize(1.0);
+	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    introscreen();
 
-    glPushMatrix();
-        glTranslatef(posX, posY, posZ);
-        rect();
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslatef(bulletX, bulletY + 0.1, posZ);
-        shoot();
-    glPopMatrix();
-
-    glPushMatrix();
-        glTranslatef(enemyX, enemyY, posZ);
-		glRotatef(theta[1], 1.0, 1.0, 0.0);
-		glutWireTeapot(0.05);
-        enemies();
-    glPopMatrix();
-
-    glutSwapBuffers();
-    glFlush();
+	// Set window size in X- and Y- direction
+	gluOrtho2D(-620.0, 620.0, -340.0, 340.0);
 }
 
-void rotate(){
-	theta[axis]+=1.5;
-	if(theta[axis]>360.0) theta[axis]-=360.0;
-	display();
-
-}
-
-void keyboardown(int key, int x, int y)
+// keyboard function : it gets active when button pressed
+void keyboard(unsigned char key, int x, int y)
 {
-    // printf("%d", key);
-    switch (key)
-    {
-    case GLUT_KEY_RIGHT:
-        if (posX <= 0.9)
-        {
-            posX += move_unit;
-        }
-        break;
-    case GLUT_KEY_LEFT:
-        if (posX >= -0.9)
-        {
-            posX -= move_unit;
-        }
-        break;
+	left = -200 + 200 * (d - c);
+	right = 200 + 200 * (d - c);
 
-    case GLUT_KEY_UP:
-        bulletY = -0.65;
-        bulletX = posX;
-        display();
-        break;
-
-    default:
-        break;
-    }
-    glutPostRedisplay();
+	// if leftmost index of window is hit
+	// then rectangle will not move to left on further pressing of b
+	// only it will move to right on pressing n
+	if (left == -600)
+	{
+		// '110' -> Ascii value of 'n'
+		// so d is incremented when n is pressed
+		if (key == 110)
+			d++;
+	}
+	// if rightmost index of window is hit
+	// then rectangle will not move to right on further pressing of n
+	// only it will move to left on pressing b
+	else if (right == 600)
+	{
+		// '98' -> Ascii value of 'b'
+		// so c is incremented when b is pressed
+		if (key == 98)
+			c++;
+	}
+	// when rectangle is in middle, then it will move into both
+	// direction depending upon pressed key
+	else
+	{
+		if (key == 98)
+			c++;
+		if (key == 110)
+			d++;
+	}
+	glutPostRedisplay();
 }
 
-int main(int argc, char **argv)
+void myDisplay(void)
 {
+	// x and y keeps point on circumference of circle
+	int x, y, k;
+	// outer 'for loop' is to for making motion in ball
+	for (k = 0; k <= 400; k += 5)
+	{
+		glClear(GL_COLOR_BUFFER_BIT);
+		glBegin(GL_LINE_STRIP);
+		// i keeps track of angle
+		float i = 0;
+		// change in m denotes motion in vertical direction and
+		// change in n denotes motion in horizontal direction
+		m = m + 6;
+		n = n + 4;
+		// drawing of circle centre at (0, 12) iterated up to 2*pi, i.e., 360 degree
+		while (i <= 2 * pi)
+		{
+			y = 12 + 20 * cos(i);
+			x = 20 * sin(i);
+			i = i + 0.1;
+			// flag1 is 0 to show motion in upward direction and is 1 for downward direction
+			if (m == 288 && flag1 == 0)
+			{
+				j = -1;
+				m = -288;
+				flag1 = 1;
+				score++;
+			}
+			if (m == 288 && flag1 == 1)
+			{
+				j = 1;
+				m = -288;
+				flag1 = 0;
+			}
+			// flag2 is 0 to show motion in rightward direction and is 1 for leftward direction
+			if (n == 580 && flag2 == 0)
+			{
+				l = -1;
+				n = -580;
+				flag2 = 1;
+			}
+			if (n == 580 && flag2 == 1)
+			{
+				l = 1;
+				n = -580;
+				flag2 = 0;
+			}
+			// equation for desired motion of ball
+			glVertex2i((x - l * n), (y - j * m));
+		}
+		glEnd();
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB| GLUT_DEPTH);
-    glutInitWindowSize(500, 500);
-    glutInitWindowPosition(0, 0);
-    glutCreateWindow("Practice 1");
-    glutDisplayFunc(display);
-    glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
-    glutIdleFunc(rotate);
-    init();
-    glutTimerFunc(1000, timer, 0);
-    glutTimerFunc(3000, enemyTimer, 0);
-    glutSpecialFunc(keyboardown);
-    glutMainLoop();
+		// these four points draws outer rectangle which determines window
+		glBegin(GL_LINE_LOOP);
+			glVertex2i(-600, -320);
+			glVertex2i(-600, 320);
+			glVertex2i(600, 320);
+			glVertex2i(600, -320);
+		glEnd();
+
+		// these four points draws smaller rectangle which is for catching ball
+		glBegin(GL_LINE_LOOP);
+		left = -200 + 200 * (d - c);
+		right = 200 + 200 * (d - c);
+			glVertex2i(left, -315);
+			glVertex2i(left, -295);
+			glVertex2i(right, -295);
+			glVertex2i(right, -315);
+		glEnd();
+
+		// following condition checks if falling ball is catched on rectangle or not
+		if ((j * m) == 276)
+		{
+			if ((left > ((-1 * l * n) + 20)) || (right < (-1 * l * n) - 20))
+			{
+				printf("Game Over !!!\nYour Score is :\t%d\n", score);
+				exit(0);
+			}
+		}
+		glutSwapBuffers();
+	}
 }
 
-// gcc 1.c -lglut -lGL -lGLU
-//./a.out
+
+// Driver Program
+int main (int argc, char** argv)
+{
+	glutInit(&argc, argv);
+	
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+	// Declares window size
+	glutInitWindowSize(1100, 600);
+	
+	// Declares window position which is (0, 0)
+	// means lower left corner will indicate position (0, 0)
+	glutInitWindowPosition(0, 0);
+
+	// Name to window
+	glutCreateWindow("Game");
+
+	// keyboard function
+	glutKeyboardFunc(keyboard);
+	// Call to myInit()
+	myInit();
+	glutDisplayFunc(myDisplay);
+	glutMainLoop();
+}
