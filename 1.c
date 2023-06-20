@@ -115,7 +115,24 @@ void enemyYtimer(){
     enemyY-=0.2;
     if(enemyY<=-0.7){
         gameOver=1;
-        printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nGame over, Your score was: %d\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", (level*5)+score);
+        int finalScore=(level*5)+score;
+        printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nGame over, Your score was: %d\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", finalScore);
+        if(finalScore<=10){
+            printf("You might not take this seriously -_-\n\n");
+        }
+        else if(finalScore<=20){
+            printf("Try harder, you got potential ('w')\n\n");
+        }
+        else if(finalScore<=30){
+            printf("Damn, you play well \\('o')/\n\n");
+        }
+        else if(finalScore<=40){
+            printf("Please give me an autograph |owo|\n\n");
+        }
+        else if(finalScore<=50){
+            printf("You are a beast |o-O|\n\n");
+        }
+        
         exit(0);
     }
 }
