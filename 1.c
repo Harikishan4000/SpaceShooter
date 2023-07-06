@@ -5,7 +5,6 @@
 
 int gameOver=0; //0 if game not over
 
-
 GLfloat rotation = 90.0;
 int bullet_shot_target_hit=1;
 float move_unit = 0.1f;
@@ -44,7 +43,6 @@ void scorenleveltext()
     strcat(s, sc);
     snprintf(buf, 17, s);
     renderbitmap(-0.9, 0.85, GLUT_BITMAP_TIMES_ROMAN_24, buf);
-
     glColor3f(0.7f, 0.7f, 0.7f);
     char buf2[1000] = {0};
     char s2[] = "Level: ";
@@ -55,17 +53,11 @@ void scorenleveltext()
     renderbitmap(0.6, 0.85, GLUT_BITMAP_TIMES_ROMAN_24, buf2);
 }
 
-void introscreen(){
-
-}
-
 //Timer functions
 void timer(int n)
 {
-    
     glutPostRedisplay();
     glutTimerFunc(1000 / 60, timer, 0);
-
     if (bulletY <= 1.7)
     {
         bulletY += move_unit;
@@ -110,8 +102,6 @@ void enemyTimer(){
             }
         }
     }
-    
-
 }
 
 void enemyYtimer(){
@@ -121,30 +111,6 @@ void enemyYtimer(){
         gameOver=1;
         int finalScore=((level-1)*5)+score;
         printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nGame over, Your score was: %d\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n", finalScore);
-        if(finalScore<=5){
-            printf("You might not take this seriously -_-\n\n");
-        }
-        else if(finalScore<=10){
-            printf("Try harder, you got potential ('w')\n\n");
-        }
-        else if(finalScore<=15){
-            printf("Damn, you play well \\('o')/\n\n");
-        }
-        else if(finalScore<=20){
-            printf("Please give me an autograph |owo|\n\n");
-        }
-        else if(finalScore<=25){
-            printf("You are a beast |o-O|\n\n");
-        }
-        else if(finalScore<=30){
-            printf("I'm scared of you (o o)\n\n");
-        }
-        else if(finalScore<=35){
-            printf("You aren't real |0oO|\n\n");
-        }
-        else{
-            printf("HOW DID YOU DO THAT??! (x-x)\n\n");
-        }
         exit(0);
     }
 }
@@ -152,10 +118,8 @@ void enemyYtimer(){
 void reshape(int width, int height)
 {
     /* window ro reshape when made it bigger or smaller*/
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
     // clip the windows so its shortest side is 2.0
     if (width < height)
     {
@@ -192,12 +156,10 @@ void display()
         GLfloat mat_shininess_bullet[]={500.0f};
 		GLfloat mat_diffuse_gun[]={0.19f, 0.2f, 0.09f, 1.0f};
 		GLfloat mat_diffuse_bullet[]={0.5706f, 0, 0, 1.0f};
-        
         // // glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
         glPushMatrix();
             glTranslatef(bulletX, bulletY-0.09, posZ);
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse_bullet);
@@ -209,7 +171,6 @@ void display()
             quad = gluNewQuadric();
             gluSphere(quad,0.05,10,4);
         glPopMatrix();
-
 		glPushMatrix();
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse_gun);
         	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
@@ -225,7 +186,6 @@ void display()
             quad3 = gluNewQuadric();
 			gluCylinder(quad3, 0.05,0.05 ,0.8, 10, 5);
     	glPopMatrix();
-
         //Enemies
         for(int i=0;i<5;i++){
             if(enemyAliveArr[i]==1){
@@ -241,11 +201,8 @@ void display()
             }
         }
     glPopMatrix();
-
     scorenleveltext();
 	}
-    
-
     glutSwapBuffers();
     glFlush();
 }
@@ -254,7 +211,6 @@ void rotate(){
 	theta[axis]+=1.5;
 	if(theta[axis]>360.0) theta[axis]-=360.0;
 	display();
-
 }
 
 void keyboardown(int key, int x, int y)
@@ -290,7 +246,6 @@ void keyboardown(int key, int x, int y)
 
 int main(int argc, char **argv)
 {
-
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB| GLUT_DEPTH);
     glutInitWindowSize(500, 500);
@@ -304,9 +259,9 @@ int main(int argc, char **argv)
 	glEnable(GL_NORMALIZE);
     glutIdleFunc(rotate);
     init();
-    glutTimerFunc(3000, timer, 0);
-    glutTimerFunc(3000, enemyTimer, 0);
-    glutTimerFunc(5000, enemyYtimer, 0);
+    glutTimerFunc(9000, timer);
+    glutTimerFunc(9000, enemyTimer);
+    glutTimerFunc(9000, enemyYtimer);
     glutSpecialFunc(keyboardown);
     glutMainLoop();
 }
